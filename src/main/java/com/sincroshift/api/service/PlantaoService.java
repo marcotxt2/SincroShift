@@ -10,6 +10,9 @@ import com.sincroshift.api.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Objects;
+
 @Service
 public class PlantaoService {
     @Autowired
@@ -33,4 +36,30 @@ public class PlantaoService {
         return new PlantaoResponseDTO(plantaosalvo);
 
     }
+    public List<PlantaoResponseDTO> listarDisponiveis(){
+        List<Plantao> plantoesDisponiveis = plantaoRepository.findByStatus(StatusPlantao.DISPONIVEL);
+        return plantoesDisponiveis.stream().map(PlantaoResponseDTO::new).toList();
+    }
+
+    public List<PlantaoResponseDTO> listarMeusPlantoes(String emailUsuarioLogado){
+        Usuario usuario = usuarioRepository.findByEmail(emailUsuarioLogado).orElseThrow();
+        Long idUsuarioAtual = usuario.getId();
+        List<Plantao> plantoesUsuario = plantaoRepository.findByUsuarioAtualId(idUsuarioAtual);
+        return plantoesUsuario.stream().map(PlantaoResponseDTO::new).toList();
+    }
+
+//    public PlantaoResponseDTO demonstrarInteresse(Long plantaoId, String emailInteressado){
+//        Plantao plantao = plantaoRepository.findById(plantaoId).orElseThrow();
+//        Usuario usuario = usuarioRepository.findByEmail(emailInteressado).orElseThrow();
+//        if (plantao.getStatus() != StatusPlantao.DISPONIVEL){
+//            throw new RuntimeException("Este plantão não está disponivel para troca.");
+//        }
+//        if (Objects.equals(plantao.getUsuarioAtual().getId(), usuario.getId())){
+//            throw new RuntimeException("Você não pode demonstrar interesse no própio plantão");
+//        }
+//        plantao.setStatus(StatusPlantao.EM_NEGOCIACAO);
+//        plantao.setUsuarioInteressado(usuario);
+//        Plantao plantaoAtualizado = plantaoRepository.save(plantao);
+//        return new PlantaoResponseDTO(plantaoAtualizado);
+//    }
 }
