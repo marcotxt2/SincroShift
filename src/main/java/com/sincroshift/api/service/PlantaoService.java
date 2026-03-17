@@ -29,7 +29,6 @@ public class PlantaoService {
         plantao.setDataHoraInicio(dto.dataHoraInicio());
         plantao.setDataHoraFim(dto.dataHoraFim());
         plantao.setSetor(dto.setor());
-        plantao.setUsuarioAtual(usuario);
         plantao.setStatus(StatusPlantao.DISPONIVEL);
 
         Plantao plantaosalvo = plantaoRepository.save(plantao);

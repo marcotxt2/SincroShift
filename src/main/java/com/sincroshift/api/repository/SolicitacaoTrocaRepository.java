@@ -9,6 +9,7 @@ import java.util.List;
 
 @Repository
 public interface SolicitacaoTrocaRepository extends JpaRepository<SolicitacaoTroca,Long> {
+    List<SolicitacaoTroca> findByPlantaoId(Long plantaoId);
     List<SolicitacaoTroca> findByStatus(StatusSolicitacao status);
     List<SolicitacaoTroca> findBySolicitanteId(Long solicitanteId);
 }

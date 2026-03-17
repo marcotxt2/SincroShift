@@ -31,10 +31,10 @@ public class Plantao {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private StatusPlantao status; // Enum: DISPONIVEL, EM_NEGOCIACAO, APROVADO, CANCELADO
+    private StatusPlantao status; // Enum: DISPONIVEL, EM_NEGOCIACAO, OCUPADO, CANCELADO
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "usuario_id", nullable = false)
+    @JoinColumn(name = "usuario_id")
     private Usuario usuarioAtual;
 
 }
