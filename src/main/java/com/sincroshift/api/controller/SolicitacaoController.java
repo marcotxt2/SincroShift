@@ -30,4 +30,17 @@ public class SolicitacaoController {
         solicitacaoTrocaService.cancelarMinhaCandidatura(id, principal.getName());
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{id}/aprovar")
+    public ResponseEntity<Void> aprovarCandidatura(@PathVariable Long id, Principal principal){
+        solicitacaoTrocaService.aprovarCandidatura(id,  principal.getName());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/recusar")
+    public ResponseEntity<Void> recusarCandidatura(@PathVariable Long id, Principal principal){
+        solicitacaoTrocaService.recusarCandidatura(id, principal.getName());
+        return ResponseEntity.noContent().build();
+    }
+
 }

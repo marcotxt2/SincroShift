@@ -28,5 +28,5 @@ public class Usuario {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private TipoPerfil perfil; // Enum: GESTOR, COLABORADOR
+    private TipoPerfil perfil; // Enum: GESTOR, COLABORADOR (não desejo criar nenhum com perfil de colaborador, somente o de gestor será necessário pois qualquer usuário pode cadastrar um plantão e se candidatar a outros plantões também tal qual um linkedin)
 }

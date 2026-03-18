@@ -8,8 +8,11 @@ import com.sincroshift.api.model.enums.StatusPlantao;
 import com.sincroshift.api.repository.PlantaoRepository;
 import com.sincroshift.api.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Objects;
 
@@ -23,7 +26,7 @@ public class PlantaoService {
 
     public PlantaoResponseDTO cadastrarPlantao(PlantaoRequestDTO dto, String emailUsuarioLogado) {
 
-        Usuario usuario  = usuarioRepository.findByEmail(emailUsuarioLogado).orElseThrow();
+        Usuario usuario = usuarioRepository.findByEmail(emailUsuarioLogado).orElseThrow();
 
         Plantao plantao = new Plantao();
         plantao.setDataHoraInicio(dto.dataHoraInicio());
@@ -36,16 +39,39 @@ public class PlantaoService {
         return new PlantaoResponseDTO(plantaosalvo);
 
     }
-    public List<PlantaoResponseDTO> listarDisponiveis(){
+
+    public List<PlantaoResponseDTO> listarDisponiveis() {
         List<Plantao> plantoesDisponiveis = plantaoRepository.findByStatus(StatusPlantao.DISPONIVEL);
         return plantoesDisponiveis.stream().map(PlantaoResponseDTO::new).toList();
     }
 
-    public List<PlantaoResponseDTO> listarMeusPlantoes(String emailUsuarioLogado){
+    public List<PlantaoResponseDTO> listarMeusPlantoes(String emailUsuarioLogado) {
         Usuario usuario = usuarioRepository.findByEmail(emailUsuarioLogado).orElseThrow();
         Long idUsuarioAtual = usuario.getId();
         List<Plantao> plantoesUsuario = plantaoRepository.findByUsuarioAtualId(idUsuarioAtual);
         return plantoesUsuario.stream().map(PlantaoResponseDTO::new).toList();
+    }
+
+    public void cancelarPlantao(Long plantaoId, String emailUsuarioLogado) {
+        Plantao plantao = plantaoRepository.findById(plantaoId).orElseThrow();
+        Usuario usuario = usuarioRepository.findByEmail(emailUsuarioLogado).orElseThrow();
+        if (Objects.equals(plantao.getStatus(), StatusPlantao.OCUPADO)) {
+            throw new RuntimeException("Alguém já se planejou para este plantão.");
+        }
+        if (!usuario.getId().equals(plantao.getCriador().getId())) {
+            throw new RuntimeException("Apenas o dono do plantão pode cancelar ele.");
+        }
+        plantao.setStatus(StatusPlantao.CANCELADO);
+        plantaoRepository.save(plantao);
+    }
+
+    public Page<PlantaoResponseDTO> listarMural(String emailUsuarioLogado, Pageable pageable) {
+        Usuario usuario = usuarioRepository.findByEmail(emailUsuarioLogado).orElseThrow();
+        Page<Plantao> plantoesDisponiveis = plantaoRepository.findByStatusAndCriadorIdNot(
+                StatusPlantao.DISPONIVEL,
+                usuario.getId(),
+                pageable);
+        return plantoesDisponiveis.map(PlantaoResponseDTO::new);
     }
 
 //    public PlantaoResponseDTO demonstrarInteresse(Long plantaoId, String emailInteressado){

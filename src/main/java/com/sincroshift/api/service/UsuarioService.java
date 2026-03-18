@@ -20,7 +20,9 @@ public class UsuarioService {
     private PasswordEncoder passwordEncoder;
 
     public UsuarioResponseDTO salvarUsuario(UsuarioRequestDTO dto) {
-
+        if (usuarioRepository.existsByEmail(dto.email())) {
+            throw new RuntimeException("Este e-mail já está em uso.");
+        }
         Usuario usuario = new Usuario();
         usuario.setNome(dto.nome());
         usuario.setEmail(dto.email());

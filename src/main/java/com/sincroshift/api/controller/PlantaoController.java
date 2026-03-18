@@ -5,7 +5,11 @@ import com.sincroshift.api.dto.PlantaoResponseDTO;
 import com.sincroshift.api.dto.SolicitacaoResponseDTO;
 import com.sincroshift.api.service.PlantaoService;
 import com.sincroshift.api.service.SolicitacaoTrocaService;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -52,15 +56,14 @@ public class PlantaoController {
         return ResponseEntity.ok(solicitacoes);
     }
 
-    @PutMapping("/solicitacoes/{id}/aprovar")
-    public ResponseEntity<Void> aprovarCandidatura(@PathVariable Long id, Principal principal){
-        solicitacaoTrocaService.aprovarCandidatura(id,  principal.getName());
+    @PutMapping("/{id}/cancelar")
+    public ResponseEntity<Void> cancelarPlantão(@PathVariable Long id, Principal principal){
+        plantaoService.cancelarPlantao(id, principal.getName());
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/solicitacoes/{id}/recusar")
-    public ResponseEntity<Void> recusarCandidatura(@PathVariable Long id, Principal principal){
-        solicitacaoTrocaService.recusarCandidatura(id, principal.getName());
-        return ResponseEntity.noContent().build();
+    @GetMapping("/mural")
+    public ResponseEntity<Page<PlantaoResponseDTO>> muralPlantoes(@ParameterObject  @PageableDefault(size = 10) Pageable pageable, Principal principal){
+        return ResponseEntity.ok(plantaoService.listarMural(principal.getName(), pageable));
     }
 }
