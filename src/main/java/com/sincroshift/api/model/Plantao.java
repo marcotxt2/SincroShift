@@ -37,4 +37,8 @@ public class Plantao {
     @JoinColumn(name = "usuario_id")
     private Usuario usuarioAtual;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "criador_id", nullable = false)
+    private Usuario criador;
+
 }

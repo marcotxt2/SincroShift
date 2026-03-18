@@ -3,7 +3,6 @@ package com.sincroshift.api.controller;
 import com.sincroshift.api.dto.PlantaoRequestDTO;
 import com.sincroshift.api.dto.PlantaoResponseDTO;
 import com.sincroshift.api.dto.SolicitacaoResponseDTO;
-import com.sincroshift.api.model.SolicitacaoTroca;
 import com.sincroshift.api.service.PlantaoService;
 import com.sincroshift.api.service.SolicitacaoTrocaService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,14 +47,20 @@ public class PlantaoController {
     }
 
     @GetMapping("/{id}/candidatos")
-    public ResponseEntity<List<SolicitacaoResponseDTO>> listarSolicitacoes(@PathVariable Long id){
-        List<SolicitacaoResponseDTO> solicitacoes = solicitacaoTrocaService.listarCandidatos(id);
+    public ResponseEntity<List<SolicitacaoResponseDTO>> listarSolicitacoes(@PathVariable Long id, Principal principal){
+        List<SolicitacaoResponseDTO> solicitacoes = solicitacaoTrocaService.listarCandidatos(id, principal.getName());
         return ResponseEntity.ok(solicitacoes);
     }
 
     @PutMapping("/solicitacoes/{id}/aprovar")
-    public ResponseEntity<Void> aprovarCandidatura(@PathVariable Long id){
-        solicitacaoTrocaService.aprovarCandidatura(id);
+    public ResponseEntity<Void> aprovarCandidatura(@PathVariable Long id, Principal principal){
+        solicitacaoTrocaService.aprovarCandidatura(id,  principal.getName());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/solicitacoes/{id}/recusar")
+    public ResponseEntity<Void> recusarCandidatura(@PathVariable Long id, Principal principal){
+        solicitacaoTrocaService.recusarCandidatura(id, principal.getName());
         return ResponseEntity.noContent().build();
     }
 }
