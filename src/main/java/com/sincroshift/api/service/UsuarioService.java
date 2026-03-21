@@ -3,6 +3,7 @@ package com.sincroshift.api.service;
 import com.sincroshift.api.dto.UsuarioRequestDTO;
 import com.sincroshift.api.dto.UsuarioResponseDTO;
 import com.sincroshift.api.model.Usuario;
+import com.sincroshift.api.model.enums.TipoPerfil;
 import com.sincroshift.api.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,7 +28,7 @@ public class UsuarioService {
         usuario.setNome(dto.nome());
         usuario.setEmail(dto.email());
         usuario.setSenha(passwordEncoder.encode(dto.senha()));
-        usuario.setPerfil(dto.perfil());
+        usuario.setPerfil(TipoPerfil.USUARIO_COMUM);
 
         Usuario usuarioSalvo = usuarioRepository.save(usuario);
 

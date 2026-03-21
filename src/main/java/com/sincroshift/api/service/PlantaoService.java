@@ -24,20 +24,17 @@ public class PlantaoService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    public PlantaoResponseDTO cadastrarPlantao(PlantaoRequestDTO dto, String emailUsuarioLogado) {
-
-        Usuario usuario = usuarioRepository.findByEmail(emailUsuarioLogado).orElseThrow();
-
+    public PlantaoResponseDTO cadastrarPlantao(PlantaoRequestDTO dto, Long usuarioId) {
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado."));
         Plantao plantao = new Plantao();
         plantao.setDataHoraInicio(dto.dataHoraInicio());
         plantao.setDataHoraFim(dto.dataHoraFim());
         plantao.setSetor(dto.setor());
         plantao.setStatus(StatusPlantao.DISPONIVEL);
         plantao.setCriador(usuario);
-
         Plantao plantaosalvo = plantaoRepository.save(plantao);
         return new PlantaoResponseDTO(plantaosalvo);
-
     }
 
     public List<PlantaoResponseDTO> listarDisponiveis() {
@@ -45,47 +42,28 @@ public class PlantaoService {
         return plantoesDisponiveis.stream().map(PlantaoResponseDTO::new).toList();
     }
 
-    public List<PlantaoResponseDTO> listarMeusPlantoes(String emailUsuarioLogado) {
-        Usuario usuario = usuarioRepository.findByEmail(emailUsuarioLogado).orElseThrow();
-        Long idUsuarioAtual = usuario.getId();
-        List<Plantao> plantoesUsuario = plantaoRepository.findByUsuarioAtualId(idUsuarioAtual);
+    public List<PlantaoResponseDTO> listarMeusPlantoes(Long usuarioId) {
+        List<Plantao> plantoesUsuario = plantaoRepository.findByUsuarioAtualId(usuarioId);
         return plantoesUsuario.stream().map(PlantaoResponseDTO::new).toList();
     }
 
-    public void cancelarPlantao(Long plantaoId, String emailUsuarioLogado) {
+    public void cancelarPlantao(Long plantaoId, Long usuarioId) {
         Plantao plantao = plantaoRepository.findById(plantaoId).orElseThrow();
-        Usuario usuario = usuarioRepository.findByEmail(emailUsuarioLogado).orElseThrow();
         if (Objects.equals(plantao.getStatus(), StatusPlantao.OCUPADO)) {
             throw new RuntimeException("Alguém já se planejou para este plantão.");
         }
-        if (!usuario.getId().equals(plantao.getCriador().getId())) {
+        if (!usuarioId.equals(plantao.getCriador().getId())) {
             throw new RuntimeException("Apenas o dono do plantão pode cancelar ele.");
         }
         plantao.setStatus(StatusPlantao.CANCELADO);
         plantaoRepository.save(plantao);
     }
 
-    public Page<PlantaoResponseDTO> listarMural(String emailUsuarioLogado, Pageable pageable) {
-        Usuario usuario = usuarioRepository.findByEmail(emailUsuarioLogado).orElseThrow();
+    public Page<PlantaoResponseDTO> listarMural(Long usuarioId, Pageable pageable) {
         Page<Plantao> plantoesDisponiveis = plantaoRepository.findByStatusAndCriadorIdNot(
                 StatusPlantao.DISPONIVEL,
-                usuario.getId(),
+                usuarioId,
                 pageable);
         return plantoesDisponiveis.map(PlantaoResponseDTO::new);
     }
-
-//    public PlantaoResponseDTO demonstrarInteresse(Long plantaoId, String emailInteressado){
-//        Plantao plantao = plantaoRepository.findById(plantaoId).orElseThrow();
-//        Usuario usuario = usuarioRepository.findByEmail(emailInteressado).orElseThrow();
-//        if (plantao.getStatus() != StatusPlantao.DISPONIVEL){
-//            throw new RuntimeException("Este plantão não está disponivel para troca.");
-//        }
-//        if (Objects.equals(plantao.getUsuarioAtual().getId(), usuario.getId())){
-//            throw new RuntimeException("Você não pode demonstrar interesse no própio plantão");
-//        }
-//        plantao.setStatus(StatusPlantao.EM_NEGOCIACAO);
-//        plantao.setUsuarioInteressado(usuario);
-//        Plantao plantaoAtualizado = plantaoRepository.save(plantao);
-//        return new PlantaoResponseDTO(plantaoAtualizado);
-//    }
 }

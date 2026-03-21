@@ -18,13 +18,19 @@ public class JwtUtil {
 
 
     // Gera um token JWT com o nome de usuário e validade de 1 hora
-    public String generateToken(String username) {
+    public String generateToken(String username, Long id) {
         return Jwts.builder()
-                .setSubject(username) // Define o nome de usuário como o assunto do token
-                .setIssuedAt(new Date()) // Define a data e hora de emissão do token
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // Define a data e hora de expiração (1 hora a partir da emissão)
-                .signWith(Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8)), SignatureAlgorithm.HS256) // Converte a chave secreta em bytes e assina o token com ela
-                .compact(); // Constrói o token JWT
+                .setSubject(username)
+                .claim("id", id) // Injetamos o ID diretamente no corpo do Token
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60))
+                .signWith(Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8)), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public Long extractId(String token) {
+        // Lemos a claim "id" e garantimos que é convertida para o formato Long
+        return extractClaims(token).get("id", Long.class);
     }
 
     // Extrai as claims do token JWT (informações adicionais do token)

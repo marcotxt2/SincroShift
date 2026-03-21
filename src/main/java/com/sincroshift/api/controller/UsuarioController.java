@@ -5,6 +5,7 @@ import com.sincroshift.api.dto.LoginRequestDTO;
 import com.sincroshift.api.dto.UsuarioRequestDTO;
 import com.sincroshift.api.dto.UsuarioResponseDTO;
 import com.sincroshift.api.model.Usuario;
+import com.sincroshift.api.repository.UsuarioRepository;
 import com.sincroshift.api.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -26,6 +27,9 @@ public class UsuarioController {
     private AuthenticationManager authenticationManager;
 
     @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    @Autowired
     private JwtUtil jwtUtil;
 
     @PostMapping
@@ -36,14 +40,11 @@ public class UsuarioController {
 
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody LoginRequestDTO dto) {
-        // O AuthenticationManager vai buscar o usuário no banco e bater a senha com o BCrypt
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(dto.email(), dto.senha())
         );
-
-        // Se a senha estiver correta, gera o Token JWT
-        String token = jwtUtil.generateToken(authentication.getName());
-
+        Usuario usuario = usuarioRepository.findByEmail(dto.email()).orElseThrow();
+        String token = jwtUtil.generateToken(authentication.getName(), usuario.getId());
         return ResponseEntity.ok(token);
     }
 

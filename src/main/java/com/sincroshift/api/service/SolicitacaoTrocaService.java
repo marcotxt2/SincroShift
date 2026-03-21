@@ -28,45 +28,39 @@ public class SolicitacaoTrocaService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    public SolicitacaoResponseDTO candidatar(Long plantaoId, String emailColaborador) {
+    public SolicitacaoResponseDTO candidatar(Long plantaoId, Long usuarioId) {
         Plantao plantao = plantaoRepository.findById(plantaoId).orElseThrow();
-        Usuario usuario = usuarioRepository.findByEmail(emailColaborador).orElseThrow();
-
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado."));
         if (plantao.getStatus() != StatusPlantao.DISPONIVEL) {
             throw new RuntimeException("O plantão deve estar disponível para se candidatar.");
         }
         if (plantao.getCriador().getId().equals(usuario.getId())) {
             throw new RuntimeException("Você não pode se candidatar a uma vaga que você mesmo criou..");
         }
-
         SolicitacaoTroca solicitacao = new SolicitacaoTroca();
         solicitacao.setPlantao(plantao);
         solicitacao.setSolicitante(usuario);
         solicitacao.setStatus(StatusSolicitacao.PENDENTE);
         solicitacao.setDataSolicitacao(LocalDateTime.now());
         SolicitacaoTroca solicitacaoSalva = solicitacaoTrocaRepository.save(solicitacao);
-
         return new SolicitacaoResponseDTO(solicitacaoSalva);
     }
 
-    public List<SolicitacaoResponseDTO> listarCandidatos(Long plantaoId, String emailLogado) {
+    public List<SolicitacaoResponseDTO> listarCandidatos(Long plantaoId, Long usuarioId) {
         Plantao plantao =  plantaoRepository.findById(plantaoId).orElseThrow();
-        Usuario usuarioLogado = usuarioRepository.findByEmail(emailLogado).orElseThrow();
-
-        if(!plantao.getCriador().getId().equals(usuarioLogado.getId())) {
+        if(!plantao.getCriador().getId().equals(usuarioId)) {
             throw new RuntimeException("Apenas o criador da vaga pode visualizar os candidatos.");
         }
-
         List<SolicitacaoTroca> solicitacoes = solicitacaoTrocaRepository.findByPlantaoId(plantaoId);
         return solicitacoes.stream().map(SolicitacaoResponseDTO::new).toList();
     }
 
     @Transactional
-    public void aprovarCandidatura(Long solicitacaoId, String emailLogado) {
+    public void aprovarCandidatura(Long solicitacaoId, Long usuarioId) {
         SolicitacaoTroca solicitacao = solicitacaoTrocaRepository.findById(solicitacaoId).orElseThrow();
-        Usuario usuarioLogado = usuarioRepository.findByEmail(emailLogado).orElseThrow();
         Plantao plantao = solicitacao.getPlantao();
-        if(!plantao.getCriador().getId().equals(usuarioLogado.getId())) {
+        if(!plantao.getCriador().getId().equals(usuarioId)) {
             throw new RuntimeException("Apenas o criador da vaga pode aprovar um candidato.");
         }
         if (!solicitacao.getStatus().equals(StatusSolicitacao.PENDENTE)) {
@@ -86,12 +80,11 @@ public class SolicitacaoTrocaService {
         solicitacaoTrocaRepository.saveAll(concorrentes);
     }
 
-    public void recusarCandidatura(Long solicitacaoId, String emailLogado) {
+    public void recusarCandidatura(Long solicitacaoId, Long usuarioId) {
         SolicitacaoTroca solicitacao = solicitacaoTrocaRepository.findById(solicitacaoId).orElseThrow();
-        Usuario usuarioLogado = usuarioRepository.findByEmail(emailLogado).orElseThrow();
         Plantao plantao = solicitacao.getPlantao();
 
-        if (!plantao.getCriador().getId().equals(usuarioLogado.getId())) {
+        if (!plantao.getCriador().getId().equals(usuarioId)) {
             throw new RuntimeException("Apenas o criador da vaga pode recusar um candidato.");
         }
         if (!solicitacao.getStatus().equals(StatusSolicitacao.PENDENTE)) {
@@ -101,17 +94,14 @@ public class SolicitacaoTrocaService {
         solicitacaoTrocaRepository.save(solicitacao);
     }
 
-    public List<SolicitacaoResponseDTO> listarMinhasCandidaturas(String emailLogado) {
-        Usuario usuarioLogado = usuarioRepository.findByEmail(emailLogado).orElseThrow();
-        List<SolicitacaoTroca> solicitacao = solicitacaoTrocaRepository.findBySolicitanteId(usuarioLogado.getId());
+    public List<SolicitacaoResponseDTO> listarMinhasCandidaturas(Long usuarioId) {
+        List<SolicitacaoTroca> solicitacao = solicitacaoTrocaRepository.findBySolicitanteId(usuarioId);
         return solicitacao.stream().map(SolicitacaoResponseDTO::new).toList();
     }
 
-    public void cancelarMinhaCandidatura(Long solicitacaoId,String emailLogado) {
+    public void cancelarMinhaCandidatura(Long solicitacaoId,Long usuarioId) {
         SolicitacaoTroca solicitacao = solicitacaoTrocaRepository.findById(solicitacaoId).orElseThrow();
-        Usuario usuarioLogado = usuarioRepository.findByEmail(emailLogado).orElseThrow();
-
-        if(!usuarioLogado.getId().equals(solicitacao.getSolicitante().getId())) {
+        if(!usuarioId.equals(solicitacao.getSolicitante().getId())) {
             throw new RuntimeException("Você só pode cancelar a sua própia candidatura.");
         }
         if (!solicitacao.getStatus().equals(StatusSolicitacao.PENDENTE)) {
@@ -120,5 +110,4 @@ public class SolicitacaoTrocaService {
         solicitacao.setStatus(StatusSolicitacao.CANCELADA);
         solicitacaoTrocaRepository.save(solicitacao);
     }
-
 }
